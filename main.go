@@ -3,6 +3,7 @@ package main
 import (
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +19,7 @@ func main() {
 
 	// On every a element which has href attribute call callback
 	c.OnHTML("body", func(e *colly.HTMLElement) {
-		if strings.Contains(e.Text, "sudo apt") && (strings.Contains(e.Text, "sudo dnf ") || !strings.Contains(e.Text, "sudo yum ")) {
+		if strings.Contains(e.Text, "sudo apt") && !(strings.Contains(e.Text, "sudo dnf ") || !strings.Contains(e.Text, "sudo yum ")) {
 			log.Infof("found apt at: %s", e.Request.URL)
 		}
 	})
@@ -33,6 +34,7 @@ func main() {
 		// Visit link found on page
 		// Only those links are visited which are in AllowedDomains
 		if visit {
+			time.Sleep(time.Second) // dont ddos github
 			c.Visit(e.Request.AbsoluteURL(link))
 		}
 	})
@@ -58,8 +60,17 @@ func interestingLink(link string) (bool, error) {
 	}
 	var path = u.EscapedPath()
 	var pathArr = strings.Split(path, "/")
-	if len(pathArr) == 3 || pathArr[len(pathArr)-1] == "README.md" {
+
+	// repo homepage
+	if len(pathArr) == 3 {
 		return true, nil
+	}
+
+	// README.md, we only want the latest version so we only look at master or main branches
+	if len(pathArr) == 6 {
+		if pathArr[len(pathArr)-1] == "README.md" && (pathArr[len(pathArr)-2] == "master" || pathArr[len(pathArr)-2] == "main") && pathArr[len(pathArr)-3] == "blob" {
+			return true, nil
+		}
 	}
 
 	return false, nil
