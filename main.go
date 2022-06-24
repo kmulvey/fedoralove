@@ -13,6 +13,8 @@ import (
 )
 
 const staticBool = false
+
+//const startURL = "https://github.com/kmulvey/fedoralove"
 const startURL = "https://github.com/sindresorhus/awesome"
 
 var reservedPaths = map[string]bool{
@@ -62,7 +64,7 @@ func main() {
 
 	// On every a element which has href attribute call callback
 	c.OnHTML("body", func(e *colly.HTMLElement) {
-		if strings.Contains(e.Text, "sudo apt") && !(strings.Contains(e.Text, "sudo dnf ") || !strings.Contains(e.Text, "sudo yum ")) {
+		if strings.Contains(e.Text, "sudo apt") && (!strings.Contains(e.Text, "sudo dnf ") || !strings.Contains(e.Text, "sudo yum ")) {
 			log.Infof("found apt at: %s", e.Request.URL)
 		}
 	})
@@ -78,7 +80,7 @@ func main() {
 		// Only those links are visited which are in AllowedDomains
 		var _, alreadyVisited = skipMap[e.Request.AbsoluteURL(link)]
 		if visit && !alreadyVisited {
-			time.Sleep(time.Second) // dont ddos github
+			time.Sleep(time.Millisecond * 500) // dont ddos github
 			c.Visit(e.Request.AbsoluteURL(link))
 		}
 	})
