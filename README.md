@@ -1,2 +1,2 @@
 # fedoralove
-find repos that list apt-get dependencies and PR their dnf counterparts
+find repos that list sudo apt-get dependencies and PR their counterparts
